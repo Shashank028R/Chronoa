@@ -8,12 +8,14 @@ import com.studycompanion.app.domain.model.AuthSession
 import com.studycompanion.app.domain.model.User
 import com.studycompanion.app.domain.repository.AuthRepository
 import com.studycompanion.app.domain.repository.AuthState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
@@ -25,7 +27,8 @@ import java.util.UUID
 class AuthRepositoryImpl(
     private val userDao: UserDao,
     private val sessionDataStore: UserSessionDataStore,
-    private val remoteDataSource: com.studycompanion.app.data.remote.RemoteDataSource? = null
+    private val remoteDataSource: com.studycompanion.app.data.remote.RemoteDataSource? = null,
+    private val appDatabase: com.studycompanion.app.core.database.AppDatabase? = null
 ) : AuthRepository {
 
     override val authState: Flow<AuthState> = combine(
@@ -204,6 +207,23 @@ class AuthRepositoryImpl(
             remoteDataSource?.logout()
         } catch (e: Exception) {
             // Ignore remote logout failure when offline
+        }
+        sessionDataStore.clearSession()
+        return Result.success(Unit)
+    }
+
+    override suspend fun deleteAccount(): Result<Unit> {
+        val userId = sessionDataStore.userIdFlow.firstOrNull()
+        try {
+            remoteDataSource?.deleteAccount()
+        } catch (e: Exception) {
+            // Allow offline or network-resilient deletion
+        }
+        if (userId != null) {
+            userDao.delete(userId)
+        }
+        withContext(Dispatchers.IO) {
+            appDatabase?.clearAllTables()
         }
         sessionDataStore.clearSession()
         return Result.success(Unit)

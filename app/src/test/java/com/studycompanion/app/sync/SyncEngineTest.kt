@@ -98,6 +98,10 @@ class FakeApiService : ApiService {
         return Result.success(Unit)
     }
 
+    override suspend fun deleteAccount(accessToken: String): Result<Unit> {
+        return Result.success(Unit)
+    }
+
     override suspend fun pushMutations(
         accessToken: String,
         deviceId: String,

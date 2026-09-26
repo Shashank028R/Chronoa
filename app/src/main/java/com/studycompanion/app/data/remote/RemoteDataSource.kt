@@ -44,6 +44,17 @@ class RemoteDataSource(
         return result
     }
 
+    suspend fun deleteAccount(): Result<Unit> {
+        val token = sessionDataStore.sessionTokenFlow.firstOrNull() ?: ""
+        val result = if (token.isNotEmpty()) {
+            apiService.deleteAccount(token)
+        } else {
+            Result.success(Unit)
+        }
+        sessionDataStore.clearSession()
+        return result
+    }
+
     suspend fun pushMutations(deviceId: String, mutationsJson: JSONArray): Result<PushResponse> {
         val token = getValidAccessToken() ?: return Result.failure(IOException("Not authenticated"))
         return apiService.pushMutations(token, deviceId, mutationsJson)

@@ -48,7 +48,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     }
 
     override val authRepository: AuthRepository by lazy {
-        AuthRepositoryImpl(database.userDao(), sessionDataStore, remoteDataSource)
+        AuthRepositoryImpl(database.userDao(), sessionDataStore, remoteDataSource, database)
     }
 
     override val profileRepository: ProfileRepository by lazy {

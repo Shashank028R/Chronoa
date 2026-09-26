@@ -90,6 +90,26 @@ class HttpApiService(
         }
     }
 
+    override suspend fun deleteAccount(accessToken: String): Result<Unit> {
+        val request = Request.Builder()
+            .url("$baseUrl/auth/account")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .delete()
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful || response.code == 404) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(IOException("Account deletion failed with HTTP ${response.code}"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun pushMutations(
         accessToken: String,
         deviceId: String,

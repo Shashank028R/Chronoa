@@ -64,6 +64,7 @@ class FakeUiApiService : ApiService {
     override suspend fun refreshToken(refreshToken: String): Result<AuthResponse> =
         Result.success(AuthResponse("u-1", "test@test.com", "at", "rt", System.currentTimeMillis() + 3600_000L))
     override suspend fun logout(accessToken: String): Result<Unit> = Result.success(Unit)
+    override suspend fun deleteAccount(accessToken: String): Result<Unit> = Result.success(Unit)
     override suspend fun pushMutations(accessToken: String, deviceId: String, mutationsJson: JSONArray): Result<PushResponse> =
         Result.success(PushResponse(serverTimestamp = System.currentTimeMillis(), acknowledgedMutationIds = emptyList()))
     override suspend fun pullChanges(accessToken: String, cursor: Long): Result<PullResponse> =

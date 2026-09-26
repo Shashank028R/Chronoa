@@ -44,6 +44,7 @@ interface ApiService {
     suspend fun login(email: String, password: String): Result<AuthResponse>
     suspend fun refreshToken(refreshToken: String): Result<AuthResponse>
     suspend fun logout(accessToken: String): Result<Unit>
+    suspend fun deleteAccount(accessToken: String): Result<Unit>
 
     suspend fun pushMutations(
         accessToken: String,

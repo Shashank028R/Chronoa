@@ -58,7 +58,7 @@ class AuthenticationSystemTest {
             .setTransactionExecutor(testDispatcher.asExecutor())
             .build()
         sessionDataStore = UserSessionDataStore(context)
-        authRepository = AuthRepositoryImpl(db.userDao(), sessionDataStore)
+        authRepository = AuthRepositoryImpl(db.userDao(), sessionDataStore, null, db)
         profileRepository = ProfileRepositoryImpl(db.profileDao(), db.profileSettingsDao(), sessionDataStore)
         targetRepository = TargetRepositoryImpl(db.dailyTargetDao())
         studyAppRepository = StudyAppRepositoryImpl(db.studyAppDao(), context)
@@ -280,5 +280,27 @@ class AuthenticationSystemTest {
 
         val isAuthenticated = state.authState is AuthState.Authenticated && state.activeProfile != null
         assertFalse("isAuthenticated condition MUST be FALSE on login failure", isAuthenticated)
+    }
+
+    @Test
+    fun `Test 11 - deleteAccount deletes user, wipes all tables, clears session, and leaves system unauthenticated`() = runTest(testDispatcher) {
+        val email = "delete_me@studycompanion.app"
+        val password = "DeletePassword123!"
+
+        val user = authRepository.signUp(email, password).getOrThrow()
+        profileRepository.createProfile(user.id, "ProfileToDelete", "1234").getOrThrow()
+        advanceUntilIdle()
+
+        assertNotNull(db.userDao().getUserById(user.id))
+        assertTrue(authRepository.authState.first() is AuthState.Authenticated)
+
+        val deleteResult = authRepository.deleteAccount()
+        assertTrue("deleteAccount must succeed", deleteResult.isSuccess)
+        advanceUntilIdle()
+
+        assertNull("User must be deleted from database", db.userDao().getUserById(user.id))
+        assertTrue("AuthState must transition to Unauthenticated", authRepository.authState.first() is AuthState.Unauthenticated)
+        assertNull("Session DataStore must be cleared", sessionDataStore.userIdFlow.first())
+        assertNull("Session Token must be cleared", sessionDataStore.sessionTokenFlow.first())
     }
 }

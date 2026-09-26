@@ -365,6 +365,9 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onLogout = {
                                                 settingsViewModel.logout()
+                                            },
+                                            onDeleteAccount = {
+                                                settingsViewModel.deleteAccount()
                                             }
                                         )
                                     }

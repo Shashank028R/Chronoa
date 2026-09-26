@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,7 +30,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,12 +60,14 @@ fun SettingsScreen(
     onSwitchProfile: () -> Unit,
     onLockProfile: () -> Unit,
     onLogout: () -> Unit,
+    onDeleteAccount: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = StudyTheme.colors
     val shapes = StudyTheme.shapes
     val typography = StudyTheme.typography
     val scrollState = rememberScrollState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -284,6 +292,59 @@ fun SettingsScreen(
             )
         ) {
             Text("Log Out", fontWeight = FontWeight.SemiBold)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Delete Account button
+        TextButton(
+            onClick = { showDeleteDialog = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp)
+        ) {
+            Text(
+                "Delete Account & Data",
+                color = colors.statusError.copy(alpha = 0.85f),
+                style = typography.bodySmall.copy(fontWeight = FontWeight.Medium)
+            )
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = {
+                    Text(
+                        "Delete Account & Data?",
+                        style = typography.cardTitle,
+                        color = colors.textPrimary
+                    )
+                },
+                text = {
+                    Text(
+                        "This will permanently delete your account, study history, daily targets, and custom profiles from both this device and the cloud. This action is irreversible.",
+                        style = typography.bodySmall,
+                        color = colors.textSecondary
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDeleteDialog = false
+                            onDeleteAccount()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.statusError)
+                    ) {
+                        Text("Delete Permanently", color = androidx.compose.ui.graphics.Color.White)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel", color = colors.textPrimary)
+                    }
+                },
+                containerColor = colors.surface
+            )
         }
 
         Spacer(modifier = Modifier.height(28.dp))

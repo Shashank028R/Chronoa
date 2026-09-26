@@ -150,6 +150,13 @@ class SettingsViewModel(
         }
     }
 
+    fun deleteAccount(onComplete: () -> Unit = {}) {
+        viewModelScope.launch {
+            authRepository.deleteAccount()
+            onComplete()
+        }
+    }
+
     class Factory(
         private val authRepository: AuthRepository,
         private val profileRepository: ProfileRepository,
