@@ -1,0 +1,38 @@
+# Built application files (allow Chronoa.apk in root)
+*.apk
+!Chronoa.apk
+*.aab
+*.ap_
+*.dex
+
+# Gradle files
+.gradle/
+build/
+app/build/
+backend/build/
+
+# Local configuration file (sdk.dir, etc)
+local.properties
+
+# Log files
+*.log
+hs_err_pid*
+replay_pid*
+
+# Android Studio / IntelliJ IDEA
+.idea/
+.kotlin/
+.vscode/
+*.iml
+*.iws
+*.ipr
+out/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Dumps & temporary testing artifacts
+dump_*.xml
+res_*.xml
+*.tmp
