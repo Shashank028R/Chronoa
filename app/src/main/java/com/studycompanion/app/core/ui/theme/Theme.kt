@@ -39,7 +39,7 @@ object StudyTheme {
 
 @Composable
 fun StudyCompanionTheme(
-    themeMode: AppThemeMode = AppThemeMode.SYSTEM,
+    themeMode: AppThemeMode = AppThemeMode.AMOLED,
     content: @Composable () -> Unit
 ) {
     val isSystemDark = isSystemInDarkTheme()

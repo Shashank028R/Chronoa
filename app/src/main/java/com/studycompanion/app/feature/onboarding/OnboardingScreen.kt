@@ -1,31 +1,45 @@
 package com.studycompanion.app.feature.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,14 +49,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.studycompanion.app.R
+import com.studycompanion.app.core.ui.theme.StudyTheme
 import com.studycompanion.app.domain.model.Profile
-import com.studycompanion.app.domain.repository.AuthState
+import com.studycompanion.app.domain.repository.SelectableApp
 
 @Composable
 fun OnboardingScreen(
@@ -62,74 +83,107 @@ fun OnboardingScreen(
     onLaunchPoc: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = StudyTheme.colors
+    val shapes = StudyTheme.shapes
+    val typography = StudyTheme.typography
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
-            .padding(16.dp)
+            .background(colors.background)
+            .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
-            Text(
-                text = "Chronoa",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-            )
-
-            Text(
-                text = "Phase 1: Architecture & Local Engine Scaffold",
-                fontSize = 13.sp,
-                color = Color(0xFF94A3B8),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Status feedback banner
-            if (state.errorMessage != null) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF7F1D1D)),
+            // Elegant Chronoa Brand Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 16.dp, bottom = 20.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_chronoa_logo),
+                    contentDescription = "Chronoa Logo",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                ) {
+                        .size(44.dp)
+                        .clip(shapes.medium)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
                     Text(
-                        text = state.errorMessage,
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(12.dp)
+                        text = "Chronoa",
+                        style = typography.profileName.copy(fontWeight = FontWeight.Bold),
+                        color = colors.textPrimary
+                    )
+                    Text(
+                        text = "Smart Study Companion",
+                        style = typography.bodySmall,
+                        color = colors.textSecondary
                     )
                 }
+            }
+
+            // Status feedback banners
+            if (state.errorMessage != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(shapes.medium)
+                        .background(colors.statusError.copy(alpha = 0.12f))
+                        .border(1.dp, colors.statusError.copy(alpha = 0.35f), shapes.medium)
+                        .padding(14.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Error",
+                            tint = colors.statusError,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = state.errorMessage,
+                            style = typography.bodySmall,
+                            color = colors.textPrimary
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(14.dp))
             }
 
             if (state.successMessage != null) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF14532D)),
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
+                        .clip(shapes.medium)
+                        .background(colors.statusStudying.copy(alpha = 0.12f))
+                        .border(1.dp, colors.statusStudying.copy(alpha = 0.35f), shapes.medium)
+                        .padding(14.dp)
                 ) {
-                    Text(
-                        text = state.successMessage,
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(12.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Success",
+                            tint = colors.statusStudying,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = state.successMessage,
+                            style = typography.bodySmall,
+                            color = colors.textPrimary
+                        )
+                    }
                 }
-            }
-
-            if (state.isLoading) {
-                CircularProgressIndicator(color = Color(0xFF38BDF8))
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(14.dp))
             }
 
             // Step Content
             when (state.currentStep) {
                 OnboardingStep.AUTH -> {
                     AuthStepContent(
+                        isLoading = state.isLoading,
                         onSignUp = onSignUp,
                         onLogin = onLogin
                     )
@@ -177,65 +231,348 @@ fun OnboardingScreen(
 
 @Composable
 private fun AuthStepContent(
+    isLoading: Boolean,
     onSignUp: (String, String) -> Unit,
     onLogin: (String, String) -> Unit
 ) {
+    val colors = StudyTheme.colors
+    val shapes = StudyTheme.shapes
+    val typography = StudyTheme.typography
+    val focusManager = LocalFocusManager.current
+
+    var isSignUpMode by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var localValidationWarning by remember { mutableStateOf<String?>(null) }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+    val isEmailValid = email.contains("@") && email.contains(".")
+    val isPasswordValid = password.length >= 6
+    val passwordsMatch = !isSignUpMode || (password == confirmPassword)
+
+    val handleSubmit = {
+        focusManager.clearFocus()
+        when {
+            email.isBlank() -> {
+                localValidationWarning = "Please enter your email address."
+            }
+            !isEmailValid -> {
+                localValidationWarning = "Please enter a valid email address."
+            }
+            password.isBlank() -> {
+                localValidationWarning = "Please enter your password."
+            }
+            isSignUpMode && password.length < 6 -> {
+                localValidationWarning = "Password must be at least 6 characters."
+            }
+            isSignUpMode && password != confirmPassword -> {
+                localValidationWarning = "Passwords do not match."
+            }
+            else -> {
+                localValidationWarning = null
+                if (isSignUpMode) {
+                    onSignUp(email.trim(), password)
+                } else {
+                    onLogin(email.trim(), password)
+                }
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shapes.large)
+            .background(colors.surfaceElevated)
+            .border(1.dp, colors.borderSubtle, shapes.large)
+            .padding(24.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = "Step 1: Account Authentication",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Segmented Tab Switcher (Log In vs Sign Up)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(shapes.pill)
+                    .background(colors.surface)
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(shapes.pill)
+                        .background(if (!isSignUpMode) colors.surfaceVariant else Color.Transparent)
+                        .clickable {
+                            isSignUpMode = false
+                            localValidationWarning = null
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Log In",
+                        style = typography.cardTitle.copy(
+                            fontWeight = if (!isSignUpMode) FontWeight.Bold else FontWeight.Medium
+                        ),
+                        color = if (!isSignUpMode) colors.textPrimary else colors.textSecondary
+                    )
+                }
 
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email Address") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(shapes.pill)
+                        .background(if (isSignUpMode) colors.surfaceVariant else Color.Transparent)
+                        .clickable {
+                            isSignUpMode = true
+                            localValidationWarning = null
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Sign Up",
+                        style = typography.cardTitle.copy(
+                            fontWeight = if (isSignUpMode) FontWeight.Bold else FontWeight.Medium
+                        ),
+                        color = if (isSignUpMode) colors.textPrimary else colors.textSecondary
+                    )
+                }
+            }
 
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth()
-            )
             Spacer(modifier = Modifier.height(20.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = { onSignUp(email, password) },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8))
-                ) {
-                    Text("Sign Up", color = Color.Black, fontWeight = FontWeight.Bold)
-                }
+            Text(
+                text = if (isSignUpMode) "Create an Account" else "Welcome Back",
+                style = typography.cardTitle.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                color = colors.textPrimary
+            )
+            Text(
+                text = if (isSignUpMode) "Start your automated study journey" else "Log in to access your study profiles",
+                style = typography.bodySmall,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
+            )
 
-                OutlinedButton(
-                    onClick = { onLogin(email, password) },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Log In", color = Color(0xFF38BDF8))
+            // Local validation warning
+            if (localValidationWarning != null) {
+                Text(
+                    text = localValidationWarning!!,
+                    style = typography.bodySmall,
+                    color = colors.statusError,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                )
+            }
+
+            // Email Input
+            OutlinedTextField(
+                value = email,
+                onValueChange = {
+                    email = it
+                    localValidationWarning = null
+                },
+                label = { Text("Email Address") },
+                placeholder = { Text("student@chronoa.app") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = "Email",
+                        tint = if (email.isNotBlank()) colors.accent else colors.textSecondary
+                    )
+                },
+                trailingIcon = {
+                    if (email.isNotBlank()) {
+                        IconButton(onClick = { email = "" }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear",
+                                tint = colors.textSecondary
+                            )
+                        }
+                    }
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedBorderColor = colors.accent,
+                    unfocusedBorderColor = colors.borderSubtle,
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary,
+                    focusedLabelColor = colors.accent,
+                    unfocusedLabelColor = colors.textSecondary
+                ),
+                shape = shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Password Input
+            OutlinedTextField(
+                value = password,
+                onValueChange = {
+                    password = it
+                    localValidationWarning = null
+                },
+                label = { Text("Password") },
+                placeholder = { Text("At least 6 characters") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Password",
+                        tint = if (password.isNotBlank()) colors.accent else colors.textSecondary
+                    )
+                },
+                trailingIcon = {
+                    TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Text(
+                            text = if (passwordVisible) "HIDE" else "SHOW",
+                            style = typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = colors.accent
+                        )
+                    }
+                },
+                singleLine = true,
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = if (isSignUpMode) ImeAction.Next else ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { handleSubmit() }
+                ),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedBorderColor = colors.accent,
+                    unfocusedBorderColor = colors.borderSubtle,
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary,
+                    focusedLabelColor = colors.accent,
+                    unfocusedLabelColor = colors.textSecondary
+                ),
+                shape = shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (isSignUpMode) {
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Confirm Password Input
+                val isMismatch = confirmPassword.isNotEmpty() && confirmPassword != password
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = {
+                        confirmPassword = it
+                        localValidationWarning = null
+                    },
+                    label = { Text("Confirm Password") },
+                    placeholder = { Text("Re-enter password") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Confirm Password",
+                            tint = if (confirmPassword.isNotBlank() && !isMismatch) colors.accent else colors.textSecondary
+                        )
+                    },
+                    trailingIcon = {
+                        TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Text(
+                                text = if (confirmPasswordVisible) "HIDE" else "SHOW",
+                                style = typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = colors.accent
+                            )
+                        }
+                    },
+                    singleLine = true,
+                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { handleSubmit() }
+                    ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = colors.surface,
+                        unfocusedContainerColor = colors.surface,
+                        focusedBorderColor = if (isMismatch) colors.statusError else colors.accent,
+                        unfocusedBorderColor = if (isMismatch) colors.statusError.copy(alpha = 0.5f) else colors.borderSubtle,
+                        focusedTextColor = colors.textPrimary,
+                        unfocusedTextColor = colors.textPrimary,
+                        focusedLabelColor = colors.accent,
+                        unfocusedLabelColor = colors.textSecondary
+                    ),
+                    shape = shapes.medium,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Primary Action Button (Pill shaped, emerald)
+            Button(
+                onClick = handleSubmit,
+                enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = shapes.pill,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.accent,
+                    contentColor = colors.background,
+                    disabledContainerColor = colors.accent.copy(alpha = 0.35f),
+                    disabledContentColor = colors.background.copy(alpha = 0.6f)
+                )
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = colors.background,
+                        strokeWidth = 2.5.dp
+                    )
+                } else {
+                    Text(
+                        text = if (isSignUpMode) "Create Account" else "Log In",
+                        style = typography.cardTitle.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Mode Toggle Link
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.clickable {
+                    isSignUpMode = !isSignUpMode
+                    localValidationWarning = null
+                }
+            ) {
+                Text(
+                    text = if (isSignUpMode) "Already have an account? " else "Don't have an account? ",
+                    style = typography.bodySmall,
+                    color = colors.textSecondary
+                )
+                Text(
+                    text = if (isSignUpMode) "Log In" else "Sign Up",
+                    style = typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    color = colors.accent
+                )
             }
         }
     }
@@ -247,25 +584,31 @@ private fun ProfileCreateStepContent(
     canSkip: Boolean,
     onSkip: () -> Unit
 ) {
+    val colors = StudyTheme.colors
+    val shapes = StudyTheme.shapes
+    val typography = StudyTheme.typography
+
     var name by remember { mutableStateOf("") }
     var pin by remember { mutableStateOf("") }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shapes.large)
+            .background(colors.surfaceElevated)
+            .border(1.dp, colors.borderSubtle, shapes.large)
+            .padding(20.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column {
             Text(
-                text = "Step 2: Create Profile & Secure PIN",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                text = "Create Profile & Secure PIN",
+                style = typography.cardTitle.copy(fontWeight = FontWeight.Bold),
+                color = colors.textPrimary
             )
             Text(
                 text = "Profiles isolate study targets and sessions. PIN is hashed with PBKDF2.",
-                fontSize = 12.sp,
-                color = Color(0xFF94A3B8),
+                style = typography.bodySmall,
+                color = colors.textSecondary,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
             )
 
@@ -273,28 +616,59 @@ private fun ProfileCreateStepContent(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Profile Name (e.g. Shashank)") },
+                leadingIcon = {
+                    Icon(Icons.Default.Person, contentDescription = null, tint = colors.textSecondary)
+                },
                 singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedBorderColor = colors.accent,
+                    unfocusedBorderColor = colors.borderSubtle,
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary
+                ),
+                shape = shapes.medium,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             OutlinedTextField(
                 value = pin,
                 onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) pin = it },
                 label = { Text("Profile PIN (4 to 6 numeric digits)") },
+                leadingIcon = {
+                    Icon(Icons.Default.Lock, contentDescription = null, tint = colors.textSecondary)
+                },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedBorderColor = colors.accent,
+                    unfocusedBorderColor = colors.borderSubtle,
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary
+                ),
+                shape = shapes.medium,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
                 onClick = { onCreateProfile(name, pin) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8))
+                enabled = name.isNotBlank() && pin.length >= 4,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = shapes.pill,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.accent,
+                    contentColor = colors.background
+                )
             ) {
-                Text("Create Profile", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text("Create Profile", style = typography.cardTitle.copy(fontWeight = FontWeight.Bold))
             }
 
             if (canSkip) {
@@ -303,7 +677,7 @@ private fun ProfileCreateStepContent(
                     onClick = onSkip,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Skip to Dashboard", color = Color(0xFF94A3B8))
+                    Text("Skip to Dashboard", color = colors.textSecondary)
                 }
             }
         }
@@ -315,22 +689,28 @@ private fun TargetSetupStepContent(
     onSetTarget: (Long) -> Unit,
     onSkip: () -> Unit
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+    val colors = StudyTheme.colors
+    val shapes = StudyTheme.shapes
+    val typography = StudyTheme.typography
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shapes.large)
+            .background(colors.surfaceElevated)
+            .border(1.dp, colors.borderSubtle, shapes.large)
+            .padding(20.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column {
             Text(
-                text = "Step 3: Set Daily Study Target",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                text = "Set Daily Study Target",
+                style = typography.cardTitle.copy(fontWeight = FontWeight.Bold),
+                color = colors.textPrimary
             )
             Text(
-                text = "Your daily study goal. Setting a target preserves originalTargetSeconds.",
-                fontSize = 12.sp,
-                color = Color(0xFF94A3B8),
+                text = "Select your daily study goal. Setting a target preserves originalTargetSeconds.",
+                style = typography.bodySmall,
+                color = colors.textSecondary,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
             )
 
@@ -341,30 +721,34 @@ private fun TargetSetupStepContent(
                 Button(
                     onClick = { onSetTarget(3600L) }, // 1 hr
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155))
+                    shape = shapes.medium,
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceVariant)
                 ) {
-                    Text("1h", color = Color.White)
+                    Text("1h", color = colors.textPrimary)
                 }
                 Button(
                     onClick = { onSetTarget(7200L) }, // 2 hrs
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155))
+                    shape = shapes.medium,
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceVariant)
                 ) {
-                    Text("2h", color = Color.White)
+                    Text("2h", color = colors.textPrimary)
                 }
                 Button(
                     onClick = { onSetTarget(10800L) }, // 3 hrs
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8))
+                    shape = shapes.medium,
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent)
                 ) {
-                    Text("3h", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("3h", color = colors.background, fontWeight = FontWeight.Bold)
                 }
                 Button(
                     onClick = { onSetTarget(14400L) }, // 4 hrs
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155))
+                    shape = shapes.medium,
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceVariant)
                 ) {
-                    Text("4h", color = Color.White)
+                    Text("4h", color = colors.textPrimary)
                 }
             }
 
@@ -374,7 +758,7 @@ private fun TargetSetupStepContent(
                 onClick = onSkip,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Skip for Now", color = Color(0xFF94A3B8))
+                Text("Skip for Now", color = colors.textSecondary)
             }
         }
     }
@@ -382,83 +766,51 @@ private fun TargetSetupStepContent(
 
 @Composable
 private fun StudyAppsSetupStepContent(
-    availableApps: List<com.studycompanion.app.domain.repository.SelectableApp>,
+    availableApps: List<SelectableApp>,
     selectedApps: Set<String>,
     onAddApp: (String, String) -> Unit,
     onRemoveApp: (String) -> Unit,
     onDone: () -> Unit
 ) {
+    val colors = StudyTheme.colors
+    val shapes = StudyTheme.shapes
+    val typography = StudyTheme.typography
+
     var customPackage by remember { mutableStateOf("") }
     var customLabel by remember { mutableStateOf("") }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shapes.large)
+            .background(colors.surfaceElevated)
+            .border(1.dp, colors.borderSubtle, shapes.large)
+            .padding(20.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column {
             Text(
-                text = "Step 4: Select Study Apps",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                text = "Select Approved Study Apps",
+                style = typography.cardTitle.copy(fontWeight = FontWeight.Bold),
+                color = colors.textPrimary
             )
             Text(
-                text = "Select apps that count as study time. No hardcoded lists.",
-                fontSize = 12.sp,
-                color = Color(0xFF94A3B8),
+                text = "Select apps that count towards your study focus.",
+                style = typography.bodySmall,
+                color = colors.textSecondary,
                 modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
             )
 
-            // Manual entry for testing or custom app
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedTextField(
-                    value = customPackage,
-                    onValueChange = { customPackage = it },
-                    label = { Text("Package Name") },
-                    singleLine = true,
-                    modifier = Modifier.weight(1.5f)
-                )
-                OutlinedTextField(
-                    value = customLabel,
-                    onValueChange = { customLabel = it },
-                    label = { Text("Label") },
-                    singleLine = true,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    if (customPackage.isNotBlank()) {
-                        onAddApp(customPackage.trim(), customLabel.trim().ifBlank { customPackage.trim() })
-                        customPackage = ""
-                        customLabel = ""
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155))
-            ) {
-                Text("Add Custom App", color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
             // Available Apps list
             Text(
-                text = "Discovered Launchable Apps (${availableApps.size})",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF38BDF8)
+                text = "Available Apps (${availableApps.size})",
+                style = typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                color = colors.accent
             )
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(240.dp)
                     .padding(vertical = 8.dp)
             ) {
                 items(availableApps) { app ->
@@ -467,29 +819,45 @@ private fun StudyAppsSetupStepContent(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .clickable {
+                                if (isChecked) onRemoveApp(app.packageName)
+                                else onAddApp(app.packageName, app.label)
+                            }
+                            .padding(vertical = 6.dp)
                     ) {
                         Checkbox(
                             checked = isChecked,
                             onCheckedChange = { checked ->
                                 if (checked) onAddApp(app.packageName, app.label)
                                 else onRemoveApp(app.packageName)
-                            }
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = colors.accent,
+                                uncheckedColor = colors.textSecondary
+                            )
                         )
                         Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Text(text = app.label, color = Color.White, fontSize = 14.sp)
-                            Text(text = app.packageName, color = Color(0xFF64748B), fontSize = 11.sp)
+                            Text(text = app.label, color = colors.textPrimary, style = typography.cardTitle)
+                            Text(text = app.packageName, color = colors.textSecondary, style = typography.bodySmall)
                         }
                     }
                 }
             }
 
+            Spacer(modifier = Modifier.height(14.dp))
+
             Button(
                 onClick = onDone,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF38BDF8))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = shapes.pill,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.accent,
+                    contentColor = colors.background
+                )
             ) {
-                Text("Complete Setup & View Dashboard", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text("Complete Setup", style = typography.cardTitle.copy(fontWeight = FontWeight.Bold))
             }
         }
     }
@@ -508,6 +876,10 @@ private fun DashboardContent(
     onNewProfile: () -> Unit,
     onLaunchPoc: () -> Unit
 ) {
+    val colors = StudyTheme.colors
+    val shapes = StudyTheme.shapes
+    val typography = StudyTheme.typography
+
     var showSwitchDialog by remember { mutableStateOf(false) }
     var selectedProfileToSwitch by remember { mutableStateOf<Profile?>(null) }
     var switchPin by remember { mutableStateOf("") }
@@ -521,12 +893,15 @@ private fun DashboardContent(
     ) {
         // Profile Card
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shapes.large)
+                    .background(colors.surfaceElevated)
+                    .border(1.dp, colors.borderSubtle, shapes.large)
+                    .padding(16.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -535,30 +910,56 @@ private fun DashboardContent(
                         Column {
                             Text(
                                 text = "Active Profile",
-                                fontSize = 12.sp,
-                                color = Color(0xFF94A3B8)
+                                style = typography.bodySmall,
+                                color = colors.textSecondary
                             )
                             Text(
                                 text = state.activeProfile?.name ?: "No active profile (Locked)",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                style = typography.profileName,
+                                color = colors.textPrimary
                             )
                         }
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
                                 onClick = { showSwitchDialog = true },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155))
+                                shape = shapes.pill,
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.accent)
                             ) {
-                                Text("Switch", color = Color.White, fontSize = 12.sp)
+                                Text("Switch", color = colors.background)
                             }
                             Button(
                                 onClick = onLockProfile,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF475569))
+                                shape = shapes.pill,
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceVariant)
                             ) {
-                                Text("Lock", color = Color.White, fontSize = 12.sp)
+                                Text("Lock", color = colors.textPrimary)
                             }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Profiles: ${state.userProfiles.joinToString { it.name }}",
+                        style = typography.bodySmall,
+                        color = colors.textSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = onNewProfile,
+                            shape = shapes.pill,
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceVariant)
+                        ) {
+                            Text("+ New Profile", color = colors.textPrimary)
+                        }
+                        Button(
+                            onClick = onLogout,
+                            shape = shapes.pill,
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceVariant)
+                        ) {
+                            Text("Logout", color = colors.statusError)
                         }
                     }
                 }
@@ -567,126 +968,41 @@ private fun DashboardContent(
 
         // Daily Target Card
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shapes.large)
+                    .background(colors.surfaceElevated)
+                    .border(1.dp, colors.borderSubtle, shapes.large)
+                    .padding(16.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Today's Target",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF38BDF8)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    val target = state.todayTarget
-                    if (target != null) {
-                        Text(
-                            text = "Original Target: ${target.originalTargetSeconds / 60} mins (${target.originalTargetSeconds / 3600}h ${(target.originalTargetSeconds % 3600) / 60}m)",
-                            color = Color.White,
-                            fontSize = 13.sp
-                        )
-                        if (target.adjustedTargetSeconds != null) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
                             Text(
-                                text = "Adjusted Target: ${target.adjustedTargetSeconds / 60} mins",
-                                color = Color(0xFFFBBF24),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold
+                                text = "Daily Target",
+                                style = typography.bodySmall,
+                                color = colors.textSecondary
+                            )
+                            Text(
+                                text = state.todayTarget?.let { "${it.effectiveTargetSeconds / 60}m (${it.effectiveTargetSeconds / 3600}h)" }
+                                    ?: "No target set",
+                                style = typography.profileName,
+                                color = colors.textPrimary
                             )
                         }
-                        Text(
-                            text = "Effective Target: ${target.effectiveTargetSeconds / 60} mins",
-                            color = Color(0xFF34D399),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    } else {
-                        Text("No target set for today", color = Color(0xFF94A3B8), fontSize = 13.sp)
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Button(
-                        onClick = { showAdjustTargetDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155))
-                    ) {
-                        Text("Adjust Today's Target (Preserves Original)", fontSize = 12.sp, color = Color.White)
-                    }
-                }
-            }
-        }
-
-        // Selected Study Apps Card
-        item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Configured Study Apps (${state.studyApps.size})",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF38BDF8)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (state.studyApps.isEmpty()) {
-                        Text("No study apps added yet.", color = Color(0xFF94A3B8), fontSize = 13.sp)
-                    } else {
-                        state.studyApps.forEach { app ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = app.appLabel, color = Color.White, fontSize = 14.sp)
-                                    Text(text = app.packageName, color = Color(0xFF64748B), fontSize = 11.sp)
-                                }
-                                Switch(
-                                    checked = app.isEnabled,
-                                    onCheckedChange = { onToggleApp(app.packageName, it) }
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                TextButton(onClick = { onRemoveApp(app.packageName) }) {
-                                    Text("Remove", color = Color(0xFFF87171), fontSize = 12.sp)
-                                }
-                            }
+                        Button(
+                            onClick = { showAdjustTargetDialog = true },
+                            shape = shapes.pill,
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.surfaceVariant)
+                        ) {
+                            Text("Adjust Target", color = colors.textPrimary)
                         }
                     }
-                }
-            }
-        }
-
-        // Action Buttons
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onNewProfile,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155))
-                ) {
-                    Text("Create Another Profile", color = Color.White)
-                }
-
-                Button(
-                    onClick = onLaunchPoc,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7))
-                ) {
-                    Text("Launch Phase 0.2 POC Timeline", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-
-                OutlinedButton(
-                    onClick = onLogout,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Logout", color = Color(0xFFF87171))
                 }
             }
         }
@@ -696,10 +1012,10 @@ private fun DashboardContent(
     if (showSwitchDialog) {
         AlertDialog(
             onDismissRequest = { showSwitchDialog = false },
-            title = { Text("Switch Profile") },
+            title = { Text("Switch Profile", color = colors.textPrimary) },
             text = {
                 Column {
-                    Text("Select a profile and enter its PIN:")
+                    Text("Select a profile and enter its PIN:", color = colors.textSecondary)
                     Spacer(modifier = Modifier.height(8.dp))
                     state.userProfiles.forEach { prof ->
                         Row(
@@ -710,9 +1026,10 @@ private fun DashboardContent(
                         ) {
                             Checkbox(
                                 checked = selectedProfileToSwitch?.id == prof.id,
-                                onCheckedChange = { if (it) selectedProfileToSwitch = prof }
+                                onCheckedChange = { if (it) selectedProfileToSwitch = prof },
+                                colors = CheckboxDefaults.colors(checkedColor = colors.accent)
                             )
-                            Text(text = prof.name, color = Color.White, modifier = Modifier.padding(start = 8.dp))
+                            Text(text = prof.name, color = colors.textPrimary, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -723,6 +1040,14 @@ private fun DashboardContent(
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = colors.surface,
+                            unfocusedContainerColor = colors.surface,
+                            focusedBorderColor = colors.accent,
+                            unfocusedBorderColor = colors.borderSubtle,
+                            focusedTextColor = colors.textPrimary,
+                            unfocusedTextColor = colors.textPrimary
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -736,14 +1061,16 @@ private fun DashboardContent(
                             showSwitchDialog = false
                             switchPin = ""
                         }
-                    }
+                    },
+                    shape = shapes.pill,
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = colors.background)
                 ) {
                     Text("Verify & Switch")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showSwitchDialog = false }) {
-                    Text("Cancel")
+                    Text("Cancel", color = colors.textSecondary)
                 }
             }
         )
@@ -753,10 +1080,10 @@ private fun DashboardContent(
     if (showAdjustTargetDialog) {
         AlertDialog(
             onDismissRequest = { showAdjustTargetDialog = false },
-            title = { Text("Adjust Today's Target") },
+            title = { Text("Adjust Today's Target", color = colors.textPrimary) },
             text = {
                 Column {
-                    Text("Adjust target in minutes (original target remains preserved):")
+                    Text("Adjust target in minutes:", color = colors.textSecondary)
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = adjustedMinutesInput,
@@ -764,6 +1091,14 @@ private fun DashboardContent(
                         label = { Text("Minutes") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = colors.surface,
+                            unfocusedContainerColor = colors.surface,
+                            focusedBorderColor = colors.accent,
+                            unfocusedBorderColor = colors.borderSubtle,
+                            focusedTextColor = colors.textPrimary,
+                            unfocusedTextColor = colors.textPrimary
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -776,14 +1111,16 @@ private fun DashboardContent(
                             onAdjustTarget(mins * 60L)
                             showAdjustTargetDialog = false
                         }
-                    }
+                    },
+                    shape = shapes.pill,
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = colors.background)
                 ) {
                     Text("Save Adjustment")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAdjustTargetDialog = false }) {
-                    Text("Cancel")
+                    Text("Cancel", color = colors.textSecondary)
                 }
             }
         )

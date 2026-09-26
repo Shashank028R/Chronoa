@@ -26,7 +26,7 @@ data class SettingsUiState(
     val currentUser: User? = null,
     val activeProfile: Profile? = null,
     val settings: ProfileSettings = ProfileSettings(""),
-    val currentTheme: AppThemeMode = AppThemeMode.SYSTEM,
+    val currentTheme: AppThemeMode = AppThemeMode.AMOLED,
     val syncState: SyncState = SyncState.Synced(0L),
     val todayTargetSeconds: Long = 0L,
     val isSyncing: Boolean = false,
